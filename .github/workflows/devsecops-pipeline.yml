@@ -31,7 +31,7 @@ jobs:
 
     - name: Tag Docker image
       run: |
-        docker tag my-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-repository:latest  # Tag with ECR repository URI
+        docker tag my-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/interview/introduction:latest  # Tag with ECR repository URI
 
     - name: Push Docker image to Amazon ECR
       run: |
