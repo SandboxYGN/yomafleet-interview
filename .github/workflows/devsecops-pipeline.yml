@@ -68,8 +68,17 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    # Deploy the container to ECS (Using Fargate)
-    - name: Deploy to ECS
-      run: |
-        ecs-cli configure --cluster my-cluster --region ${{ secrets.AWS_REGION }}
-        ecs-cli compose --file docker-compose.yml up
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+          task-definition: nodejs-app-task-definition.json 
+          container-name: nodejs-app
+          image: 666265053366.dkr.ecr.ap-northeast-2.amazonaws.com/interview/introduction:latest    
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: introduction-svc
+          cluster: lab
+          wait-for-service-stability: true
