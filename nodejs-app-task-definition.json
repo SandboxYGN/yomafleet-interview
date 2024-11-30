@@ -19,18 +19,9 @@
     "family": "frontend-family",
     "executionRoleArn": "arn:aws:iam::666265053366:role/frondend-ecs-role",
     "networkMode": "awsvpc",
-    "revision": 4,
-    "volumes": [],
-    "status": "ACTIVE",
-    "placementConstraints": [],
-    "compatibilities": [
-        "EC2",
-        "FARGATE"
-    ],
     "requiresCompatibilities": [
         "FARGATE"
     ],
     "cpu": "1024",
     "memory": "2048"
-   
 }
