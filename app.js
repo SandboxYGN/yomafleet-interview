@@ -14,6 +14,7 @@ app.get('/', (req, res) => {
       <h1 style="border: 2px solid #4a90e2; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
         Hello, I am <strong>Thurain Oo</strong>!
 	The strongest cloud Engineer In Myanmar.
+	Give me $1500
       </h1>
     </div>
   `;
