@@ -1,9 +1,8 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:666265053366:task-definition/frontend-family:4",
     "containerDefinitions": [
         {
             "name": "introduction",
-            "image": "666265053366.dkr.ecr.ap-northeast-2.amazonaws.com/introduction:latest",
+            "image": "666265053366.dkr.ecr.ap-southeast1-2.amazonaws.com/introduction:latest",
             "cpu": 1024,
             "memory": 2048,
             "portMappings": [
