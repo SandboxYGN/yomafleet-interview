@@ -31,11 +31,11 @@ jobs:
 
     - name: Tag Docker image
       run: |
-        docker tag my-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/interview/introduction:latest  # Tag with ECR repository URI
+        docker tag my-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Tag with ECR repository URI
 
     - name: Push Docker image to Amazon ECR
       run: |
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/interview/introduction:latest  # Push the tagged image to ECR
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Push the tagged image to ECR
 # Job 2: Deploy the latest Docker image to ECS
   deploy-to-ecs:
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner for this job
@@ -58,12 +58,12 @@ jobs:
       with:
         task-definition: nodejs-app-task-definition.json  # Path to your ECS task definition file
         container-name: introduction # Name of the container inside the ECS task definition
-        image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/interview/introduction:latest # Image URL in ECR
+        image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest # Image URL in ECR
 
     - name: Deploy to Amazon ECS
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}  # Task definition output from previous step
-        service: introduction-svc  # ECS service name
-        cluster: lab  # ECS cluster name
+        service: frontend  # ECS service name
+        cluster: Yoma-ECS  # ECS cluster name
         wait-for-service-stability: true  # Wait for th        
