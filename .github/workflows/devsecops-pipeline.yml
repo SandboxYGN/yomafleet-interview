@@ -27,7 +27,7 @@ jobs:
       # Step 4: Run the unit tests
       - name: Run tests
         run: NODE_ENV=test npm test
-  build-and-push:
+  build--image-scan--DAST--and-push-to-ecr:
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner for the job
     needs: test
     steps:
@@ -58,6 +58,20 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+    - name: Run App
+      run: |
+        docker run -d -p 3000:3000 dummy-nodejs-app:latest
+
+    - name: Wait for application to be ready
+      run: |
+        sleep 30  # Wait for the application to fully start up (adjust time as needed)
+
+    - name: Run OWASP ZAP for DAST
+      uses: zaproxy/action-full-scan@v0.12.0
+      with:
+        target: 'http://localhost:3000'  # Replace with the port of your Docker container
+#        api-key: ${{ secrets.ZAP_API_KEY }}  # Optional: Set API key if using ZAP's API
+#       start-options: '-config api.disablekey=true'          
     - name: Tag Docker image
       run: |
         docker tag dummy-nodejs-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Tag with ECR repository URI
