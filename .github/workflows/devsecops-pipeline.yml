@@ -82,7 +82,7 @@ jobs:
 # Job 2: Deploy the latest Docker image to ECS
   deploy-to-ecs:
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner for this job
-    needs: build-and-push  # This job will run after the build-and-push job is successful
+    needs: build--image-scan--DAST--and-push-to-ecr   # This job will run after the build-and-push job is successful
 
     steps:
     - name: Check out the repository
