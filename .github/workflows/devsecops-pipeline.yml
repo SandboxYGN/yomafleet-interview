@@ -9,7 +9,6 @@ jobs:
   
   test:
     runs-on: ubuntu-latest
-    needs: static-code-analysis
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
