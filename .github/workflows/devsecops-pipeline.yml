@@ -29,14 +29,9 @@ jobs:
         with:
           languages: javascript
 
-      # Step 5: Perform CodeQL analysis
       - name: Perform CodeQL analysis
-        run: |
-          # Analyze the database and output the results as a table to the log
-          codeql database analyze \
-            codeql-database \
-            --format=table \
-            --output=- # Output directly to stdout (GitHub Actions log)
+        uses: github/codeql-action/analyze@v2
+
       # Step 6: Run the unit tests
       - name: Run tests
         run: NODE_ENV=test npm test
