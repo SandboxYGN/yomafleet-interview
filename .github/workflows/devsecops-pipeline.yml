@@ -23,8 +23,16 @@ jobs:
       # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
+      # Step 4: Set up CodeQL
+      - name: Set up CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
 
-      # Step 4: Run the unit tests
+      # Step 5: Perform CodeQL analysis
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v2
+      # Step 6: Run the unit tests
       - name: Run tests
         run: NODE_ENV=test npm test
   build--image-scan--DAST--and-push-to-ecr:
