@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+   
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
@@ -26,10 +26,10 @@ jobs:
 
       # Step 4: Run the unit tests
       - name: Run tests
-        run: npm test
+        run: NODE_ENV=test npm test
   build-and-push:
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner for the job
-
+    needs: test
     steps:
     - name: Check out the repository
       uses: actions/checkout@v2  # Checkout the code from the repository
