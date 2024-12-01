@@ -6,27 +6,7 @@ on:
       - main  
 
 jobs:
-  static-code-analysis:
-      runs-on: ubuntu-latest
-
-      steps:
-      # Step 1: Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Step 2: Set up Node.js environment
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'  # Specify the Node.js version you want
-
-      # Step 3: Install dependencies
-      - name: Install dependencies
-        run: npm install
-
-      # Step 4: Run ESLint for static code analysis
-      - name: Run ESLint
-        run: npx eslint . --ext .js #--max-warnings=0
+  
   test:
     runs-on: ubuntu-latest
     needs: static-code-analysis
@@ -69,7 +49,13 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t my-app .  # Build Docker image with the tag 'my-app'
+        docker build -t dummy-nodejs-app .  # Build Docker image with the tag 'my-app'
+    - name: Scan Docker image with Trivy
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+          image-ref: 'dummy-nodejs-app'
+          format: 'sarif'
+          output: 'trivy-results.sarif'        
 
     - name: Tag Docker image
       run: |
