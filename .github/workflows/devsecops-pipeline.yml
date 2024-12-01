@@ -49,16 +49,18 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t dummy-nodejs-app .  # Build Docker image with the tag 'my-app'
-    - name: Scan Docker image with Trivy
-      uses: aquasecurity/trivy-action@0.20.0
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.28.0
       with:
           image-ref: 'dummy-nodejs-app'
-          format: 'sarif'
-          output: 'trivy-results.sarif'        
-
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
     - name: Tag Docker image
       run: |
-        docker tag my-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Tag with ECR repository URI
+        docker tag dummy-nodejs-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Tag with ECR repository URI
 
     - name: Push Docker image to Amazon ECR
       run: |
