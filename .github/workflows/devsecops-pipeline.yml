@@ -23,15 +23,16 @@ jobs:
       # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
-      # Step 4: Set up CodeQL
-      - name: Set up CodeQL
-        uses: github/codeql-action/init@v2
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
         with:
-          languages: javascript
-
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v2
-
+          projectBaseDir: .
+          args: >
+            -Dsonar.organization=my-org
+            -Dsonar.projectKey=my-Java-web-app
+        env:
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       # Step 6: Run the unit tests
       - name: Run tests
         run: NODE_ENV=test npm test
