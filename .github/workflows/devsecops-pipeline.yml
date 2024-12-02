@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-  test:
+  SAST_and_Unit_test:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checkout the repository
@@ -52,7 +52,7 @@ jobs:
 
   build-image-and-push-to-ecr:
     runs-on: ubuntu-latest
-    needs: test
+    needs: SAST_and_Unit_test
     steps:
       # Step 1: Check out the repository
       - name: Checkout code
