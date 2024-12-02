@@ -1,13 +1,11 @@
-name: Build and Push Docker Image to AWS ECR
-
+name: YomaFleet-DevSecOps-Assessment-for_ThurainOo
 on:
   push:
     branches:
-      - main  
+      - main
 
 jobs:
-  
-  SAST_and_Unit_test:
+  test:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checkout the repository
@@ -18,11 +16,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # Specify the Node.js version you want
+          node-version: '22'
 
       # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
+
+      # Step 4: Run SonarQube scan
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
@@ -31,108 +31,111 @@ jobs:
             -Dsonar.organization=yoma-fleet
             -Dsonar.projectKey=dummy-nodejs-app
         env:
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-    # Check the Quality Gate status.
-      - name: SonarQube Quality Gate check
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # Step 5: Check SonarQube Quality Gate
+      - name: SonarQube Quality Gate Check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
-      # Force to fail step after specific time.
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} #OPTIONAL
-    # Show the output from the Quality Gate.
-    # The possible outputs of the `quality-gate-status` variable are `PASSED`, `WARN` or `FAILED`.
-      - name: "Here is SonarQube Quality Gate Status value.."
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Display SonarQube Quality Gate Status
         run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
 
-
-      # Step 6: Run the unit tests
+      # Step 6: Run unit tests
       - name: Run tests
         run: NODE_ENV=test npm test
-  build--image-scan--DAST--and-push-to-ecr:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner for the job
-    needs: SAST_and_Unit_test
+
+  build-image-and-push-to-ecr:
+    runs-on: ubuntu-latest
+    needs: test
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v2  # Checkout the code from the repository
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}  # Optional: Set the region from secrets
+      # Step 2: Set up AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Log in to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v1  # Login to AWS ECR
-     # with:
-     #   region: ${{ secrets.AWS_REGION }}  # Set your AWS region (e.g., ap-northeast-2)
+      # Step 3: Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build Docker image
-      run: |
-        docker build -t dummy-nodejs-app .  # Build Docker image with the tag 'my-app'
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@0.28.0
-      with:
-          image-ref: 'dummy-nodejs-app'
-          format: 'table'
-     #     exit-code: '1'
+      # Step 4: Build Docker image
+      - name: Build Docker image
+        run: docker build -t dummy-nodejs-app .
+
+      # Step 5: Scan Docker image for vulnerabilities
+      - name: Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: dummy-nodejs-app
+          format: table
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-    - name: Run App
-      run: |
-        docker run -d -p 3000:3000 dummy-nodejs-app:latest
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
 
-    - name: Wait for application to be ready
-      run: |
-        sleep 30  # Wait for the application to fully start up (adjust time as needed)
+      # Step 6: Run application for DAST
+      - name: Run application
+        run: docker run -d -p 3000:3000 dummy-nodejs-app:latest
 
-    - name: Run OWASP ZAP for DAST
-      uses: zaproxy/action-full-scan@v0.12.0
-      with:
-        target: 'http://localhost:3000'
-        token: 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
-        # Replace with the port of your Docker container
-#        api-key: ${{ secrets.ZAP_API_KEY }}  # Optional: Set API key if using ZAP's API
-#       start-options: '-config api.disablekey=true'          
-    - name: Tag Docker image
-      run: |
-        docker tag dummy-nodejs-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Tag with ECR repository URI
+      - name: Wait for application to start
+        run: sleep 30
 
-    - name: Push Docker image to Amazon ECR
-      run: |
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest  # Push the tagged image to ECR
-# Job 2: Deploy the latest Docker image to ECS
+      # Step 7: Run OWASP ZAP for DAST
+      - name: Run OWASP ZAP
+        uses: zaproxy/action-full-scan@v0.12.0
+        with:
+          target: http://localhost:3000
+          token: ${{ secrets.ZAP_API_KEY }}
+
+      # Step 8: Tag Docker image
+      - name: Tag Docker image
+        run: docker tag dummy-nodejs-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest
+
+      # Step 9: Push Docker image to Amazon ECR
+      - name: Push Docker image to Amazon ECR
+        run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest
+
   deploy-to-ecs:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner for this job
-    needs: build--image-scan--DAST--and-push-to-ecr   # This job will run after the build-and-push job is successful
-
+    runs-on: ubuntu-latest
+    needs: build-image-and-push-to-ecr
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v2
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}  # Set your AWS region from secrets
+      # Step 2: Set up AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: nodejs-app-task-definition.json  # Path to your ECS task definition file
-        container-name: introduction # Name of the container inside the ECS task definition
-        image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest # Image URL in ECR
+      # Step 3: Update ECS task definition
+      - name: Render ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: nodejs-app-task-definition.json
+          container-name: introduction
+          image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/introduction:latest
 
-    - name: Deploy to Amazon ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}  # Task definition output from previous step
-        service: frontend  # ECS service name
-        cluster: Yoma-ECS  # ECS cluster name
-        wait-for-service-stability: true  # Wait for th        
+      # Step 4: Deploy to Amazon ECS
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: frontend
+          cluster: Yoma-ECS
+          wait-for-service-stability: true
