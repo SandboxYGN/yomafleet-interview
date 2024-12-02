@@ -7,7 +7,7 @@ on:
 
 jobs:
   
-  test:
+  SAST_and_Unit_test:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checkout the repository
@@ -53,7 +53,7 @@ jobs:
         run: NODE_ENV=test npm test
   build--image-scan--DAST--and-push-to-ecr:
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner for the job
-    needs: test
+    needs: SAST_and_Unit_test
     steps:
     - name: Check out the repository
       uses: actions/checkout@v2  # Checkout the code from the repository
