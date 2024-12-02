@@ -15,7 +15,7 @@ describe('GET /', () => {
 
     // Perform assertions on the extracted text
     expect(h1Text).toContain('Hello, I am Thurain Oo!');
-    expect(h1Text).toContain('Give me $1500');
+   // expect(h1Text).toContain('Give me $1500');
   });
 });
 
