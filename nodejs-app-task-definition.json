@@ -2,7 +2,6 @@
     "containerDefinitions": [
         {
             "name": "introduction",
-            "image": ${{ secrets.IMAGE_URL }},
             "cpu": 1024,
             "memory": 2048,
             "portMappings": [
@@ -17,7 +16,7 @@
         }
     ],
     "family": "frontend-family",
-    "executionRoleArn": ${{ secrets.EXEC_ROLE }},
+    "executionRoleArn": "arn:aws:iam::666265053366:role/frondend-ecs-role",
     "networkMode": "awsvpc",
     "requiresCompatibilities": [
         "FARGATE"
