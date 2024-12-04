@@ -83,6 +83,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH
+          exit-code: 1 
 
       # Step 6: Run application for DAST
       - name: Run application
