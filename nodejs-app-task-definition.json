@@ -2,7 +2,7 @@
     "containerDefinitions": [
         {
             "name": "introduction",
-            "image": "666265053366.dkr.ecr.ap-southeast1-2.amazonaws.com/introduction:latest",
+            "image": ${{ secrets.IMAGE_URL }},
             "cpu": 1024,
             "memory": 2048,
             "portMappings": [
@@ -17,7 +17,7 @@
         }
     ],
     "family": "frontend-family",
-    "executionRoleArn": "arn:aws:iam::666265053366:role/frondend-ecs-role",
+    "executionRoleArn": ${{ secrets.EXEC_ROLE }},
     "networkMode": "awsvpc",
     "requiresCompatibilities": [
         "FARGATE"
